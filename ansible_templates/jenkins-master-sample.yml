@@ -1,0 +1,21 @@
+---
+- hosts: "{{ passed_in_hosts }}"
+  become: yes
+  remote_user: ec2-user
+  become_user: root
+  tasks: 
+  - name: Install Apache
+    yum: 
+      name: httpd
+      state: present
+  - name: Start and Enable Apache
+    service: 
+      name: httpd
+      state: started
+      enabled: yes
+      
+  #- name: debug
+  #  vars:
+  #    master: "{{ master_ip }}"
+  #  debug:
+  #    var: "hellooooooooo {{ master }}"
