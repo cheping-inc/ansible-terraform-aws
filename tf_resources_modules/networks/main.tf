@@ -1,3 +1,15 @@
+provider "aws" {
+  region  = var.region_master
+  profile = var.profile
+  alias   = "region_master"
+}
+
+provider "aws" {
+  region  = var.region_worker
+  profile = var.profile
+  alias   = "region_worker"
+}
+
 #creation of VPC for master
 resource "aws_vpc" "vpc_master" {
   provider             = aws.region_master
@@ -108,7 +120,7 @@ resource "aws_route_table" "internet_route_master" {
 }
 
 #add route table to VPC master
-resource "aws_main_route_table_association" "set-master-default-rt-assoc" {
+resource "aws_main_route_table_association" "set_master_default_rt_assoc" {
   provider       = aws.region_master
   vpc_id         = aws_vpc.vpc_master.id
   route_table_id = aws_route_table.internet_route_master.id
@@ -135,7 +147,7 @@ resource "aws_route_table" "internet_route_worker" {
 }
 
 #add route table to VPC worker
-resource "aws_main_route_table_association" "set-worker-default-rt-assoc" {
+resource "aws_main_route_table_association" "set_worker_default_rt_assoc" {
   provider       = aws.region_worker
   vpc_id         = aws_vpc.vpc_worker.id
   route_table_id = aws_route_table.internet_route_worker.id

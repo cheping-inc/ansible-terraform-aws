@@ -1,3 +1,15 @@
+provider "aws" {
+  region  = var.region_master
+  profile = var.profile
+  alias   = "region_master"
+}
+
+provider "aws" {
+  region  = var.region_worker
+  profile = var.profile
+  alias   = "region_worker"
+}
+
 #Get Linux AMI ID using SSM from endpoint in master region
 data "aws_ssm_parameter" "linuxAmi_Master" {
   provider = aws.region_master
@@ -31,15 +43,15 @@ resource "aws_instance" "jenkins_master" {
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.master_key.key_name
   associate_public_ip_address = true
-  vpc_security_group_ids      = [aws_security_group.jenkins_sg_master.id]
-  subnet_id                   = aws_subnet.subnet_master_1.id
+  vpc_security_group_ids      = [var.jenkins_sg_master_id]
+  subnet_id                   = var.subnet_master_1_id
 
   tags = {
     Name    = "jenkins_master_tf"
     purpose = "terraform"
   }
 
-  depends_on = [aws_main_route_table_association.set-master-default-rt-assoc]
+  depends_on = [var.set_master_default_rt_assoc]
 
   #  provisioner "local-exec" {
   #    command = <<EOF
@@ -52,9 +64,9 @@ resource "aws_instance" "jenkins_master" {
 #install components on EC2 jenkins master instance 
 resource "null_resource" "install_jenkins_master" {
 
-  triggers = {
-    key = "${uuid()}"
-  }
+  # triggers = {
+  #   key = "${uuid()}"
+  # }
 
   depends_on = [aws_instance.jenkins_master]
 
@@ -71,15 +83,15 @@ resource "aws_instance" "jenkins_worker" {
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.worker_key.key_name
   associate_public_ip_address = true
-  vpc_security_group_ids      = [aws_security_group.jenkins_sg_worker.id]
-  subnet_id                   = aws_subnet.subnet_worker.id
+  vpc_security_group_ids      = [var.jenkins_sg_worker_id]
+  subnet_id                   = var.subnet_worker_id
 
   tags = {
     Name    = join("_", ["jenkins_worker_tf", count.index + 1])
     purpose = "terraform"
   }
 
-  depends_on = [aws_main_route_table_association.set-worker-default-rt-assoc, aws_instance.jenkins_master]
+  depends_on = [var.set_worker_default_rt_assoc, aws_instance.jenkins_master]
 
   #  provisioner "local-exec" {
   #    command = <<EOF
